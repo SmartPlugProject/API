@@ -31,14 +31,17 @@ module.exports = function(app) {
       name: name
     });
 
-    sensor.save(function(err, sensor) {
-      if (err) {
-        res.status(500).json({
-          success: false,
+    sensor.save(function(err) {
+      if (!err) {
+        return res.status(200).json({
+          success: true,
           message: "Sensor created successfully",
-          sensor: sensor
         });
-        res.end();
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: err.message
+        });
       }
     });
   });
@@ -75,7 +78,7 @@ module.exports = function(app) {
     const update = {
       voltage: voltage,
       current: current,
-      timestamp: Date()
+      timestamp: Date.now()
     }
 
     Sensor.findOneAndUpdate({_id: id}, {value: update}, function(err, sensor) {
