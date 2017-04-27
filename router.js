@@ -3,6 +3,14 @@ const Sensor = require('./model/sensor');
 const config = require('./config');
 const devices = config.devices;
 
+function contains(value, array) {
+  if (array.indexOf(value) === -1) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 module.exports = function(app) {
   const routes = express.Router();
   const sensorRoutes = express.Router();
@@ -11,7 +19,7 @@ module.exports = function(app) {
   // Home Route
   //========================================
   routes.get('/', function(req, res) {
-    res.json({
+    return res.json({
       message: 'success'
     });
   });
@@ -37,7 +45,7 @@ module.exports = function(app) {
       });
     }
 
-    if (devices.include(device)) {
+    if (!contains(device, devices)) {
       return res.status(422).json({
         success: false,
         message: 'You must send a valid sensor device'
@@ -46,7 +54,8 @@ module.exports = function(app) {
 
     const sensor = new Sensor({
       name: name,
-      device: device
+      device: device,
+      value: []
     });
 
     sensor.save(function(err) {
@@ -99,14 +108,14 @@ module.exports = function(app) {
       timestamp: Date.now()
     }
 
-    Sensor.findOneAndUpdate({_id: id}, {value: update}, function(err, sensor) {
+    Sensor.findByIdAndUpdate(id, {$push: {value: update}}, {upsert: true}, function(err, sensor) {
       if (err) {
         return res.status(500).json({
           success: false,
           message: err.message
         });
       }
-      res.json({
+      return res.json({
         success: true,
         sensor: req.body
       });
@@ -117,11 +126,31 @@ module.exports = function(app) {
   // List sensors
   //=====================================================
   sensorRoutes.get('/list', function(req, res) {
-    Sensor.find({}, function(sensors) {
+    Sensor.find({}, function(err, sensors) {
       return res.json({
         success: true,
         sensors: sensors
       });
+    });
+  });
+
+  //=====================================================
+  // Remove Sensor
+  //=====================================================
+  sensorRoutes.delete('/delete/:id', function(req, res) {
+    const id = req.params.id;
+    Sensor.remove({_id: id}, function(err) {
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: err.message
+        });
+      } else {
+        return res.json({
+          success: true,
+          message: 'Sensor removed successfully'
+        });
+      }
     });
   });
 
