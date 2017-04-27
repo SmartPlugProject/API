@@ -1,5 +1,7 @@
 const express = require('express');
 const Sensor = require('./model/sensor');
+const config = require('./config');
+const devices = config.devices;
 
 module.exports = function(app) {
   const routes = express.Router();
@@ -19,6 +21,7 @@ module.exports = function(app) {
   //========================================
   sensorRoutes.post('/create', function(req, res) {
     const name = req.body.name;
+    const device = req.body.device;
 
     if (!name) {
       return res.status(422).json({
@@ -27,8 +30,23 @@ module.exports = function(app) {
       });
     }
 
+    if (!device) {
+      return res.status(422).json({
+        success: false,
+        message: 'You must send the sensor device'
+      });
+    }
+
+    if (devices.include(device)) {
+      return res.status(422).json({
+        success: false,
+        message: 'You must send a valid sensor device'
+      });
+    }
+
     const sensor = new Sensor({
-      name: name
+      name: name,
+      device: device
     });
 
     sensor.save(function(err) {
@@ -91,6 +109,18 @@ module.exports = function(app) {
       res.json({
         success: true,
         sensor: req.body
+      });
+    });
+  });
+
+  //=====================================================
+  // List sensors
+  //=====================================================
+  sensorRoutes.get('/list', function(req, res) {
+    Sensor.find({}, function(sensors) {
+      return res.json({
+        success: true,
+        sensors: sensors
       });
     });
   });
