@@ -15,38 +15,52 @@ module.exports = function(app) {
   const routes = express.Router();
   const sensorRoutes = express.Router();
 
-  //========================================
-  // Home Route
-  //========================================
   routes.get('/', function(req, res) {
-    return res.json({
-      message: 'success'
-    });
+    return res.render('./doc/index');
   });
 
-  //========================================
-  // Create Sensor
-  //========================================
+  /**
+  * @api {post} /sensor/create Create sensor
+  * @apiName PostSensorCreate
+  * @apigroup Sensor
+  *
+  * @apiParam {String} name   Unique device name
+  * @apiParam {String} device Device name among ['microondas']
+  *
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     {
+  *       "success": true
+  *       "message": "Sensor created successfully"
+  *     }
+  *
+  * @apiErrorExample Error-Response
+  *     HTTP/1.1 400 Bad Request
+  *     {
+  *       "success": false
+  *       "message": "You must send the sensor name"
+  *     }
+  */
   sensorRoutes.post('/create', function(req, res) {
     const name = req.body.name;
     const device = req.body.device;
 
     if (!name) {
-      return res.status(422).json({
+      return res.status(400).json({
         success: false,
         message: 'You must send the sensor name'
       });
     }
 
     if (!device) {
-      return res.status(422).json({
+      return res.status(400).json({
         success: false,
         message: 'You must send the sensor device'
       });
     }
 
     if (!contains(device, devices)) {
-      return res.status(422).json({
+      return res.status(400).json({
         success: false,
         message: 'You must send a valid sensor device'
       });
@@ -73,30 +87,63 @@ module.exports = function(app) {
     });
   });
 
-  //========================================
-  // Update sensors data
-  //========================================
+  /**
+  * @api {put} /sensor/saveData/:id Save sensor data values
+  * @apiName PutSensorSaveData
+  * @apigroup Sensor
+  *
+  * @apiParam {String} id        Sensor id
+  * @apiParam {Number} voltage   Sensor Voltage
+  * @apiParam {Number} current   Sensor Current
+  *
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     {
+  *       "success": true
+  *       "sensor": {
+  *                    "_id": "5903d2eb6cd39d2f84fcb58e",
+  *                    "name": "micro1",
+  *                    "device": "microondas",
+  *                    "__v": 0,
+  *                    "value": [
+  *                      {
+  *                        "timestamp": "2017-04-29T00:53:25.613Z",
+  *                        "current": 2,
+  *                        "voltage": 127,
+  *                        "_id": "5903e405f8bb660004d94e49"
+  *                      }
+  *                    ]
+  *                  }
+  *     }
+  *
+  * @apiErrorExample Error-Response
+  *     HTTP/1.1 400 Bad Request
+  *     {
+  *       "success": false
+  *       "message": "You must send the sensor voltage"
+  *     }
+  */
   sensorRoutes.put('/saveData/:id', function(req, res, next) {
     const id = req.params.id;
     const voltage = req.body.voltage;
     const current = req.body.current;
 
     if (!id) {
-      return res.status(422).json({
+      return res.status(400).json({
         success: false,
         message: 'You must send the sensor id'
       });
     }
 
     if (!voltage) {
-      return res.status(422).json({
+      return res.status(400).json({
         success: false,
         message: 'You must send the sensor voltage'
       });
     }
 
     if (!current) {
-      return res.status(422).json({
+      return res.status(400).json({
         success: false,
         message: 'You must send the sensor current'
       });
@@ -117,14 +164,45 @@ module.exports = function(app) {
       }
       return res.json({
         success: true,
-        sensor: req.body
+        sensor: sensor
       });
     });
   });
 
-  //=====================================================
-  // List sensors
-  //=====================================================
+  /**
+  * @api {get} /sensor/list List all sensors
+  * @apiName GetSensorList
+  * @apigroup Sensor
+  *
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     {
+  *        "success": true,
+  *        "sensors": [
+  *          {
+  *            "_id": "5903d2eb6cd39d2f84fcb58e",
+  *            "name": "micro1",
+  *            "device": "microondas",
+  *            "__v": 0,
+  *            "value": [
+  *              {
+  *                "timestamp": "2017-04-29T00:53:25.613Z",
+  *                "current": 2,
+  *                "voltage": 127,
+  *                "_id": "5903e405f8bb660004d94e49"
+  *              }
+  *            ]
+  *          },
+  *          {
+  *            "_id": "5903d37d7cf1150004c45e8f",
+  *            "name": "micro2",
+  *            "device": "microondas",
+  *            "__v": 0,
+  *            "value": []
+  *          }
+  *        ]
+  *      }
+  */
   sensorRoutes.get('/list', function(req, res) {
     Sensor.find({}, function(err, sensors) {
       return res.json({
@@ -134,9 +212,20 @@ module.exports = function(app) {
     });
   });
 
-  //=====================================================
-  // Remove Sensor
-  //=====================================================
+  /**
+  * @api {delete} /sensor/delete/:id Delete sensor
+  * @apiName DeleteSensorDelete
+  * @apigroup Sensor
+  *
+  * @apiParam {String} id        Sensor id
+  *
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     {
+  *        "success": true,
+  *        "message": "Sensor removed successfully"
+  *     }
+  */
   sensorRoutes.delete('/delete/:id', function(req, res) {
     const id = req.params.id;
     Sensor.remove({_id: id}, function(err) {
@@ -154,9 +243,20 @@ module.exports = function(app) {
     });
   });
 
-  //======================================================
-  // Get sensor by id
-  //======================================================
+  /**
+  * @api {get} /sensor/searchById/:id Search a sensor by id
+  * @apiName GetSensorSearchById
+  * @apigroup Sensor
+  *
+  * @apiParam {String} id        Sensor id
+  *
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     {
+  *        "success": true,
+  *        "message": "Sensor removed successfully"
+  *     }
+  */
   sensorRoutes.get('/searchById/:id', function(req, res) {
     const id = req.params.id;
     Sensor.findById(id, function(err, sensor) {
@@ -167,23 +267,81 @@ module.exports = function(app) {
     });
   });
 
-  //======================================================
-  // Get sensor by name
-  //======================================================
+  /**
+  * @api {get} /sensor/searchByName/:name Search a sensor by id
+  * @apiName GetSensorSearchById
+  * @apigroup Sensor
+  *
+  * @apiParam {String} name        Sensor name
+  *
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     {
+  *        "success": true,
+  *        "sensor":
+  *          {
+  *            "_id": "5903d2eb6cd39d2f84fcb58e",
+  *            "name": "micro1",
+  *            "device": "microondas",
+  *            "__v": 0,
+  *            "value": [
+  *              {
+  *                "timestamp": "2017-04-29T00:53:25.613Z",
+  *                "current": 2,
+  *                "voltage": 127,
+  *                "_id": "5903e405f8bb660004d94e49"
+  *              }
+  *            ]
+  *          }
+  *     }
+  */
   sensorRoutes.get('/searchByName/:name', function(req, res) {
     const name = req.params.name;
-    Sensor.find({name: name}, function(err, sensors) {
+    Sensor.findOne({name: name}, function(err, sensor) {
       return res.json({
         success: true,
-        sensors: sensors
+        sensor: sensor
       });
     });
   });
 
-  //======================================================
-  // Get sensor by device
-  //======================================================
-  sensorRoutes.get('/search/:device', function(req, res) {
+  /**
+  * @api {get} /sensor/searchByDevice/:device Search all sensors from defined device
+  * @apiName GetSensorSearchByDevice
+  * @apigroup Sensor
+  *
+  * @apiParam {String} device   Device among ['microondas']
+  *
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     {
+  *        "success": true,
+  *        "sensors": [
+  *          {
+  *            "_id": "5903d2eb6cd39d2f84fcb58e",
+  *            "name": "micro1",
+  *            "device": "microondas",
+  *            "__v": 0,
+  *            "value": [
+  *              {
+  *                "timestamp": "2017-04-29T00:53:25.613Z",
+  *                "current": 2,
+  *                "voltage": 127,
+  *                "_id": "5903e405f8bb660004d94e49"
+  *              }
+  *            ]
+  *          },
+  *          {
+  *            "_id": "5903d37d7cf1150004c45e8f",
+  *            "name": "micro2",
+  *            "device": "microondas",
+  *            "__v": 0,
+  *            "value": []
+  *          }
+  *        ]
+  *      }
+  */
+  sensorRoutes.get('/searchByDevice/:device', function(req, res) {
     const device = req.params.device;
     Sensor.find({device: device}, function(err, sensors) {
       return res.json({

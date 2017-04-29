@@ -13,6 +13,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 app.use(logger('dev'));
+app.use(express.static(__dirname + '/doc'));
 
 app.listen(config.port);
 
