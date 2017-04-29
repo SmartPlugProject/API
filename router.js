@@ -76,7 +76,7 @@ module.exports = function(app) {
   //========================================
   // Update sensors data
   //========================================
-  sensorRoutes.put('/save_data/:id', function(req, res, next) {
+  sensorRoutes.put('/saveData/:id', function(req, res, next) {
     const id = req.params.id;
     const voltage = req.body.voltage;
     const current = req.body.current;
@@ -151,6 +151,45 @@ module.exports = function(app) {
           message: 'Sensor removed successfully'
         });
       }
+    });
+  });
+
+  //======================================================
+  // Get sensor by id
+  //======================================================
+  sensorRoutes.get('/searchById/:id', function(req, res) {
+    const id = req.params.id;
+    Sensor.findById(id, function(err, sensor) {
+      return res.json({
+        success: true,
+        sensor: sensor
+      });
+    });
+  });
+
+  //======================================================
+  // Get sensor by name
+  //======================================================
+  sensorRoutes.get('/searchByName/:name', function(req, res) {
+    const name = req.params.name;
+    Sensor.find({name: name}, function(err, sensors) {
+      return res.json({
+        success: true,
+        sensors: sensors
+      });
+    });
+  });
+
+  //======================================================
+  // Get sensor by device
+  //======================================================
+  sensorRoutes.get('/search/:device', function(req, res) {
+    const device = req.params.device;
+    Sensor.find({device: device}, function(err, sensors) {
+      return res.json({
+        success: true,
+        sensors: sensors
+      });
     });
   });
 
