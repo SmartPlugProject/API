@@ -19,7 +19,8 @@ const SensorSchema = new Schema({
   value: [{
     timestamp: Date,
     voltage: Number,
-    current: Number
+    current: Number,
+    power: Number
   }]
 });
 

@@ -14,6 +14,7 @@ function contains(value, array) {
 module.exports = function(app) {
   const routes = express.Router();
   const sensorRoutes = express.Router();
+  const expressWs = require('express-ws')(app);
 
   routes.get('/', function(req, res) {
     return res.render('./doc/index');
@@ -261,7 +262,6 @@ module.exports = function(app) {
     const id = req.params.id;
     Sensor.findById(id, function(err, sensor) {
       return res.json({
-        success: true,
         sensor: sensor
       });
     });
