@@ -11,7 +11,7 @@ function contains(value, array) {
   }
 }
 
-module.exports = function(app) {
+module.exports = function(app, io) {
   const routes = express.Router();
   const sensorRoutes = express.Router();
   const expressWs = require('express-ws')(app);
@@ -163,6 +163,7 @@ module.exports = function(app) {
           message: err.message
         });
       }
+      io.emit('sensor', sensor.name);
       return res.json({
         success: true,
         sensor: sensor
@@ -352,5 +353,20 @@ module.exports = function(app) {
   });
 
   app.use('/', routes);
+  app.use(function(req, res, next) {
+    const sensorId = req.query.id || '';
+    if (sensorId != '') {
+      Sensor.findById(sensorId, function(err, sensor) {
+        if (err) {
+          console.log(err);
+        } else {
+          io.emit('sensor', sensor.values);
+        }
+        next();
+      });
+    } else {
+      next();
+    }
+  });
   app.use('/sensor', sensorRoutes);
 }
