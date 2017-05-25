@@ -163,7 +163,7 @@ module.exports = function(app, io) {
           message: err.message
         });
       }
-      io.emit('sensor', sensor.name);
+      io.emit('sensor', sensor);
       return res.json({
         success: true,
         sensor: sensor
