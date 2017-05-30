@@ -4,7 +4,8 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const config = require('./config');
 const router = require('./router');
-const socketIO = require('socket.io');
+const WebSocket = require('ws');
+const SocketServer = WebSocket.Server;
 
 const app = express();
 
@@ -17,11 +18,13 @@ app.use(bodyParser.json());
 app.use(logger('dev'));
 app.use(express.static(__dirname + '/doc'));
 
-const server = app.listen(config.port, () => console.log('Running on port ${config.port}' ));
-const io = socketIO(server);
+const server = app.listen(config.port, () => console.log('Running on port ' + config.port ));
+const wss = new SocketServer({server: server});
 
-router(app, io);
-io.on('connection', (socket) => {
+router(app, wss);
+wss.on('connection', (ws) => {
   console.log('Client connected');
-  socket.on('disconnect', () => console.log('Client disconnected'));
+
 });
+
+wss.on('disconnect', () => console.log('Client disconnected'));
