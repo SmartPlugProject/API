@@ -11,10 +11,9 @@ function contains(value, array) {
   }
 }
 
-module.exports = function(app, io) {
+module.exports = function(app, wss) {
   const routes = express.Router();
   const sensorRoutes = express.Router();
-  const expressWs = require('express-ws')(app);
 
   routes.get('/', function(req, res) {
     return res.render('./doc/index');
@@ -162,12 +161,16 @@ module.exports = function(app, io) {
           success: false,
           message: err.message
         });
+      } else {
+        wss.clients.forEach((client) => {
+          client.send(sensor);
+        });
+        return res.status(200).json({
+          success: true,
+          sensor: sensor
+        });
       }
-      io.emit('sensor', sensor);
-      return res.json({
-        success: true,
-        sensor: sensor
-      });
+
     });
   });
 
