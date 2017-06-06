@@ -19,10 +19,11 @@ app.use(logger('dev'));
 app.use(express.static(__dirname + '/doc'));
 
 const server = app.listen(config.port, () => console.log('Running on port ' + config.port ));
-const wss = new SocketServer({server});
 
+const wss = new SocketServer({server});
 router(app, wss);
 wss.on('connection', (ws) => {
   console.log('Client connected');
-  ws.on('disconnect', () => console.log('Client disconnected'));
 });
+
+wss.on('disconnect', () => console.log('Client disconnected'));
