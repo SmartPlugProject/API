@@ -162,8 +162,9 @@ module.exports = function(app, wss) {
           message: err.message
         });
       } else {
+        const response = {"id": sensor.id, "value": update}
         wss.clients.forEach((client) => {
-          client.send(sensor);
+          client.send(JSON.stringify(response));
         });
         return res.status(200).json({
           success: true,
