@@ -16,11 +16,15 @@ const SensorSchema = new Schema({
     type: String,
     enum: devices
   },
-  value: [{
+  sensorData: [{
     timestamp: Date,
     voltage: Number,
     current: Number,
     power: Number
+  }],
+  energy: [{
+    timestamp: Date,
+    value: Number
   }]
 });
 

@@ -11,6 +11,17 @@ function contains(value, array) {
   }
 }
 
+function sin(peak, frequency, callback) {
+  var array = [];
+  for (var i = 0; i < 100; i++) {
+    const value = Math.round(peak*Math.sin(2*Math.PI*frequency*i/100));
+    console.log(value);
+    array.includes(value);
+
+  }
+  callback(array);
+}
+
 module.exports = function(app, wss) {
   const routes = express.Router();
   const sensorRoutes = express.Router();
@@ -155,14 +166,14 @@ module.exports = function(app, wss) {
       timestamp: Date.now()
     }
 
-    Sensor.findByIdAndUpdate(id, {$push: {value: update}}, {upsert: true}, function(err, sensor) {
+    Sensor.findByIdAndUpdate(id, {$push: {sensorData: update}}, {upsert: true}, function(err, sensor) {
       if (err) {
         return res.status(500).json({
           success: false,
           message: err.message
         });
       } else {
-        const response = {"id": sensor.id, "value": update};
+        const response = {"id": sensor.id, "sensorData": update};
         wss.clients.forEach((client) => {
           client.send(JSON.stringify(response));
         });
@@ -358,6 +369,96 @@ module.exports = function(app, wss) {
         success: true,
         sensors: sensors
       });
+    });
+  });
+
+  sensorRoutes.post('/generateSinoideEnergy/:id', function(req, res) {
+    const id = req.params.id;
+    const voltagePeak = req.body.voltagePeak != null ? req.body.voltagePeak : 127;
+    const currentPeak = req.body.currentPeak != null ? req.body.currentPeak : 2;
+    const frequency = req.body.frequency != null ? req.body.frequency : 60;
+
+    var voltages;
+    sin(voltagePeak, frequency, function(voltageArray) {
+      voltages = voltageArray;
+      sin(currentPeak, frequency, function(currentArray) {
+        console.log(voltages);
+        console.log("Current Array" + currentArray);
+
+        var update = [];
+        const now = Date.now();
+
+        for (var i = 0; i < voltagePeak.length; i++) {
+          const value = {
+            timestamp: now + (5 * i),
+            voltage: voltages[i],
+            current: currents[i]
+          }
+          update.includes(value);
+        }
+
+        Sensor.findByIdAndUpdate(id, {$push: {value: update}}, {upsert: true}, function(err, sensor) {
+          if (err) {
+            return res.status(500).json({
+              success: false,
+              message: err.message
+            });
+          } else {
+            const response = {"id": sensor.id, "value": update};
+            wss.clients.forEach((client) => {
+              client.send(JSON.stringify(response));
+            });
+            return res.status(200).json({
+              success: true,
+              sensor: sensor
+            });
+          }
+
+        });
+      });
+    });
+  });
+
+  sensorRoutes.post('/savePower/:id', function(req, res) {
+    const id = req.params.id;
+    const energy = req.body.energy;
+    const timestamp = Date.now();
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must send the sensor id'
+      });
+    }
+
+    if (!energy) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must send the sensor energy'
+      });
+    }
+
+    const update = {
+      timestamp: timestamp,
+      value: energy
+    };
+
+    Sensor.findByIdAndUpdate(id, {$push: {energy: update}}, {upsert: true}, function(err, sensor) {
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: err.message
+        });
+      } else {
+        // const response = {"id": sensor.id, "value": update};
+        // wss.clients.forEach((client) => {
+        //   client.send(JSON.stringify(response));
+        // });
+        return res.status(200).json({
+          success: true,
+          sensor: sensor
+        });
+      }
     });
   });
 
