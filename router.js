@@ -266,8 +266,13 @@ module.exports = function(app, wss) {
   sensorRoutes.get('/searchById/:id', function(req, res) {
     const id = req.params.id;
     Sensor.findById(id, function(err, sensor) {
+      const name = sensor.name;
+      const device = sensor.device;
+      const values = sensor.value;
       return res.json({
-        sensor: sensor
+        name,
+        device,
+        values
       });
     });
   });
