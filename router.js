@@ -163,7 +163,7 @@ module.exports = function(app, wss) {
     const update = {
       voltage: voltage,
       current: current,
-      timestamp: Date.now()
+      timestamp: new Date().getTime()
     }
 
     Sensor.findByIdAndUpdate(id, {$push: {sensorData: update}}, {upsert: true}, function(err, sensor) {
