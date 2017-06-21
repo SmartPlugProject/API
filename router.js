@@ -279,11 +279,13 @@ module.exports = function(app, wss) {
     Sensor.findById(id, function(err, sensor) {
       const name = sensor.name;
       const device = sensor.device;
-      const values = sensor.value;
+      const sensorData = sensor.sensorData;
+      const energy = sensor.energy;
       return res.json({
         name,
         device,
-        values
+        sensorData,
+        energy
       });
     });
   });
