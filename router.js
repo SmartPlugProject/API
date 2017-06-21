@@ -282,6 +282,7 @@ module.exports = function(app, wss) {
       const sensorData = sensor.sensorData;
       const energy = sensor.energy;
       return res.json({
+        id,
         name,
         device,
         sensorData,
